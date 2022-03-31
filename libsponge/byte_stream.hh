@@ -2,6 +2,7 @@
 #define SPONGE_LIBSPONGE_BYTE_STREAM_HH
 
 #include <string>
+#include <memory>
 
 //! \brief An in-order byte stream.
 
@@ -16,6 +17,18 @@ class ByteStream {
     // all, but if any of your tests are taking longer than a second,
     // that's a sign that you probably want to keep exploring
     // different approaches.
+    std::unique_ptr<char[]> byte_array{};
+    size_t length{};
+    size_t length_left{};
+    size_t capacity{};
+    size_t read_pointer{};
+    size_t write_pointer{};
+    bool _end{};
+    size_t _bytes_written{};
+    size_t _bytes_read{};
+
+    void insert(const char & insert_char);
+    char & get(size_t index) const;
 
     bool _error{};  //!< Flag indicating that the stream suffered an error.
 
