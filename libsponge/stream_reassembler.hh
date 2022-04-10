@@ -39,7 +39,7 @@ class StreamReassembler {
         inline void singleWrite(size_t index, const char & c, bool eof) {
           // printf("writing %c, used_storage = %ld\n", c, used_storage);
           while(index>=_capacity) {
-            index-=_capacity;
+            index = index % _capacity;
           }
           if(valid_flags[index] == true) return;
           if(eof) {

@@ -100,7 +100,6 @@ inline std::pair<size_t, bool> StreamReassembler::whetherToStream(const size_t i
 //! contiguous substrings and writes them into the output stream in order.
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
     size_t data_size = data.length();
-    // printf("push string: %s\n", data.c_str());
     auto _whether2Stream = whetherToStream(index, data_size);
     if(_whether2Stream.second) {
         auto str_index = _whether2Stream.first;
@@ -125,7 +124,6 @@ void StreamReassembler::push_substring(const string &data, const size_t index, c
         }
     } else {
         auto _whether2Buffer = whetherToBuffer(index, data_size);
-        //printf("whether buffer: %d\n", std::get<2>(_whether2Buffer));
         if(std::get<2>(_whether2Buffer)) {
             buffer->enBuffer(std::get<0>(_whether2Buffer), data.substr(std::get<1>(_whether2Buffer), std::get<3>(_whether2Buffer)), eof);
         }
