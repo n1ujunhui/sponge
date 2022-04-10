@@ -100,32 +100,32 @@ inline std::pair<size_t, bool> StreamReassembler::whetherToStream(const size_t i
 //! contiguous substrings and writes them into the output stream in order.
 void StreamReassembler::push_substring(const string &data, const size_t index, const bool eof) {
     size_t data_size = data.length();
-    printf("push string: %s\n", data.c_str());
+    // printf("push string: %s\n", data.c_str());
     auto _whether2Stream = whetherToStream(index, data_size);
     if(_whether2Stream.second) {
         auto str_index = _whether2Stream.first;
         auto writed_num = _output.write(data.substr(str_index));
-        printf("write from string index: %ld, writing %ld bytes.\n", str_index, writed_num);
-        printf("data size: %ld\n", data_size);
+        //printf("write from string index: %ld, writing %ld bytes.\n", str_index, writed_num);
+         //printf("data size: %ld\n", data_size);
         stream_need_offset += (writed_num);
         if(str_index + writed_num == data_size) {
             stream_need_offset = buffer->removeUselessBuffer(stream_need_offset, _output);
-            printf("needing: %ld\n", stream_need_offset);
-            printf("unused buffer: %ld\n", buffer->remainingStorage());
+            // printf("needing: %ld\n", stream_need_offset);
+            // printf("unused buffer: %ld\n", buffer->remainingStorage());
             if(eof) {
                 this->_output.end_input();
             }
         } else {
             auto data_left = data.substr(str_index+writed_num);
             auto _whether2Buffer = whetherToBuffer(index+str_index+writed_num, data_size-str_index+writed_num);
-            printf("whether buffer: %d\n", std::get<2>(_whether2Buffer));
+            // printf("whether buffer: %d\n", std::get<2>(_whether2Buffer));
             if(std::get<2>(_whether2Buffer)) {
                 buffer->enBuffer(std::get<0>(_whether2Buffer), data_left.substr(std::get<1>(_whether2Buffer), std::get<3>(_whether2Buffer)), eof);
             }
         }
     } else {
         auto _whether2Buffer = whetherToBuffer(index, data_size);
-        printf("whether buffer: %d\n", std::get<2>(_whether2Buffer));
+        //printf("whether buffer: %d\n", std::get<2>(_whether2Buffer));
         if(std::get<2>(_whether2Buffer)) {
             buffer->enBuffer(std::get<0>(_whether2Buffer), data.substr(std::get<1>(_whether2Buffer), std::get<3>(_whether2Buffer)), eof);
         }
