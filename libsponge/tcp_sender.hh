@@ -32,6 +32,32 @@ class TCPSender {
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _next_seqno{0};
 
+    class Alarm {
+      public:
+        bool on{false};
+        size_t expired_ms{0};
+        size_t accumulate_ms{0};
+
+        void print() {
+          printf("on: %d, accumulate_ms: %lu, expired_ms: %lu\n", on, accumulate_ms, expired_ms);
+        }
+    };
+
+    Alarm alarm{};
+
+    unsigned int currenct_RTO{0};
+    
+    unsigned int _consecutive_retransmissions{0};
+    bool _eof{false};
+    bool test{false};
+    bool isn_sent{false};
+    bool isn_acknowledged{false};
+    uint64_t _bytes_in_flight{0};
+    uint16_t _window_size{1};
+    WrappingInt32 _seqno{0};
+
+    std::queue<TCPSegment> outstanding_segments{};
+
   public:
     //! Initialize a TCPSender
     TCPSender(const size_t capacity = TCPConfig::DEFAULT_CAPACITY,
