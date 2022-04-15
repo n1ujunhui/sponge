@@ -5,6 +5,7 @@
 #include "tcp_receiver.hh"
 #include "tcp_sender.hh"
 #include "tcp_state.hh"
+#include <map>
 
 //! \brief A complete endpoint of a TCP connection
 class TCPConnection {
@@ -20,6 +21,51 @@ class TCPConnection {
     //! for 10 * _cfg.rt_timeout milliseconds after both streams have ended,
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
+
+    size_t _accumulate_ms_last_segment_received{0};
+    size_t _accumulate_ms{0};
+
+    enum ConnectionStatus{
+      CLOSED = 0,
+      LISTEN = 1,
+      SYN_RECEIVED = 2,
+      SYN_SENT = 3,
+      ESTABLISHED = 4,
+      FIN_WAIT_1 = 5,
+      FIN_WAIT_2 = 6,
+      CLOSING = 7,
+      TIME_WAIT = 8,
+      CLOSE_WAIT = 9,
+      LAST_ACK = 10
+    };
+
+    std::map<ConnectionStatus, std::string> status_mapper {
+      {CLOSED, "CLOSED"},
+      {LISTEN, "LISTEN"},
+      {SYN_RECEIVED, "SYN_RECEIVED"},
+      {SYN_SENT, "SYN_SENT"},
+      {ESTABLISHED, "ESTABLISHED"},
+      {FIN_WAIT_1, "FIN_WAIT_1"},
+      {FIN_WAIT_2, "FIN_WAIT_2"},
+      {CLOSING, "CLOSING"},
+      {TIME_WAIT, "TIME_WAIT"},
+      {CLOSE_WAIT, "CLOSE_WAIT"},
+      {LAST_ACK, "LAST_ACK"}
+    };
+
+    ConnectionStatus status{LISTEN};
+
+    inline void print_status();
+
+    inline size_t send_something();
+
+    inline void send_RST_segment();
+
+    inline void send_FIN_segment();
+
+    inline void pop_sender_segment_out();
+
+    inline bool prerequisites_1_to_3() const;
 
   public:
     //! \name "Input" interface for the writer

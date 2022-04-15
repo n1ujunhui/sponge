@@ -29,7 +29,7 @@ uint64_t TCPSender::bytes_in_flight() const {
 }
 
 void TCPSender::fill_window() {
-    printf("fill window\n");
+    // printf("fill window\n");
     if(!isn_sent) {
         TCPSegment segment{};
         TCPHeader header{};
@@ -40,10 +40,10 @@ void TCPSender::fill_window() {
         outstanding_segments.push(segment);
         isn_sent = true;
         _next_seqno = 1;
-        printf("isn = %u\n", _isn.raw_value());
-        printf("_bytes_in_flight = %lu\n", _bytes_in_flight);
+        // printf("isn = %u\n", _isn.raw_value());
+        // printf("_bytes_in_flight = %lu\n", _bytes_in_flight);
         _bytes_in_flight += 1;
-        printf("_bytes_in_flight = %lu\n", _bytes_in_flight);
+        // printf("_bytes_in_flight = %lu\n", _bytes_in_flight);
         currenct_RTO = _initial_retransmission_timeout;
         if(!alarm.on) {
             alarm.expired_ms = alarm.accumulate_ms + currenct_RTO;
@@ -62,7 +62,7 @@ void TCPSender::fill_window() {
             test = true;
         }
         else _size = _window_size <= _bytes_in_flight? 0UL: ((_window_size - _bytes_in_flight) < TCPConfig::MAX_PAYLOAD_SIZE? (_window_size - _bytes_in_flight): TCPConfig::MAX_PAYLOAD_SIZE);
-        printf("_size = %lu\n", _size);
+        // printf("_size = %lu\n", _size);
         
         if(_size == 0 || _eof) break;
         
@@ -72,12 +72,12 @@ void TCPSender::fill_window() {
             std::string str_out = _stream.read(_size);
             if(_stream.eof() && str_out.size() + 1 <= (_window_size == 0?1:_window_size)) {
                 _eof = true;
-                printf("stream has ended.\n");
+                // printf("stream has ended.\n");
             }
             if(!_eof && str_out.size() == 0) break;
             TCPHeader header{};
             header.seqno = wrap(_next_seqno, _isn);
-            printf("header seqno = %u\n", header.seqno.raw_value());
+            // printf("header seqno = %u\n", header.seqno.raw_value());
             header.fin = _eof;
             Buffer buffer(std::move(str_out));
             segment.header() = header;
@@ -91,24 +91,24 @@ void TCPSender::fill_window() {
             alarm.on = true;
         }
 
-        printf("before next seqno = %lu\n", _next_seqno);
-        printf("unwrap out = %lu\n", unwrap(_seqno, _isn, _next_seqno));
+        // printf("before next seqno = %lu\n", _next_seqno);
+        // printf("unwrap out = %lu\n", unwrap(_seqno, _isn, _next_seqno));
         _next_seqno += segment.length_in_sequence_space();
         _bytes_in_flight += segment.length_in_sequence_space();
         _segments_out.push(segment);
         
 
-        printf("now next seqno = %lu\n", _next_seqno);
-        printf("going to send: %s, size: %ld, seqno: %u\n",
-        outstanding_segments.back().payload().str().cbegin(), outstanding_segments.back().payload().size(), outstanding_segments.back().header().seqno.raw_value());
+        // printf("now next seqno = %lu\n", _next_seqno);
+        // printf("going to send: %s, size: %ld, seqno: %u\n",
+        // outstanding_segments.back().payload().str().cbegin(), outstanding_segments.back().payload().size(), outstanding_segments.back().header().seqno.raw_value());
     }
 }
 
 //! \param ackno The remote receiver's ackno (acknowledgment number)
 //! \param window_size The remote receiver's advertised window size
 void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
-    printf("ack received called, ackno = %u, window_size = %u\n", ackno.raw_value(), window_size);
-    printf("unwrap(ackno, _isn, _next_seqno) = %lu, _next_seqno = %lu\n", unwrap(ackno, _isn, _next_seqno), _next_seqno);
+    // printf("ack received called, ackno = %u, window_size = %u\n", ackno.raw_value(), window_size);
+    // printf("unwrap(ackno, _isn, _next_seqno) = %lu, _next_seqno = %lu\n", unwrap(ackno, _isn, _next_seqno), _next_seqno);
     // ignore impossible ackno
     if(unwrap(ackno, _isn, _next_seqno) > _next_seqno) return;
     bool pop = false;
@@ -116,13 +116,13 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
         auto & front = outstanding_segments.front();
         auto & front_header = front.header();
         auto segment_size = front.length_in_sequence_space();
-        printf("front_header.seqno: %u\n", front_header.seqno.raw_value());
+        // printf("front_header.seqno: %u\n", front_header.seqno.raw_value());
         if(front_header.seqno.raw_value() + segment_size <= ackno.raw_value()) {
             if(!pop) pop = true;
-            printf("find an outstanding segment, size = %lu\n", segment_size);
-            printf("before bytes_in_flisht: %lu\n", _bytes_in_flight);
+            // printf("find an outstanding segment, size = %lu\n", segment_size);
+            // printf("before bytes_in_flisht: %lu\n", _bytes_in_flight);
             _bytes_in_flight -= segment_size;
-            printf("after bytes_in_flisht: %lu\n", _bytes_in_flight);
+            // printf("after bytes_in_flisht: %lu\n", _bytes_in_flight);
             outstanding_segments.pop();
             continue;
         }
@@ -148,8 +148,9 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
 void TCPSender::tick(const size_t ms_since_last_tick) {
-    printf("tick\n");
+    // printf("tick\n");
     // no outstanding segments, turn off the alarm.
+    // printf("outstanding_num = %lu\n", outstanding_segments.size());
     if(outstanding_segments.size() == 0) {
         alarm.on = false;
         currenct_RTO = _initial_retransmission_timeout;
@@ -158,10 +159,10 @@ void TCPSender::tick(const size_t ms_since_last_tick) {
     }
 
     // there is outstanding segments and alarm expired
-    printf("accumulate_ms = %lu, ms_since_last_tick=%lu\n", alarm.accumulate_ms, ms_since_last_tick);
-    alarm.print();
+    // printf("accumulate_ms = %lu, ms_since_last_tick=%lu\n", alarm.accumulate_ms, ms_since_last_tick);
+    // alarm.print();
     if(alarm.on && ms_since_last_tick + alarm.accumulate_ms >= alarm.expired_ms) {
-        printf("expired_ms = %lu\n", alarm.expired_ms);
+        // ("resend\n");
 
         // resend
         auto & segment = outstanding_segments.front();
@@ -179,7 +180,6 @@ void TCPSender::tick(const size_t ms_since_last_tick) {
         return;
     }
     alarm.accumulate_ms += ms_since_last_tick;
-    
     DUMMY_CODE(ms_since_last_tick);
 }
 
@@ -189,5 +189,8 @@ unsigned int TCPSender::consecutive_retransmissions() const { return {
 
 void TCPSender::send_empty_segment() {
     TCPSegment segment{};
-    printf("send_empty_segment\n");
+    // printf("send_empty_segment\n");
+    segment.header().seqno = wrap(_next_seqno, _isn);
+    _segments_out.push(segment);
+
 }
