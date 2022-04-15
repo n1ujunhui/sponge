@@ -110,6 +110,7 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
     // printf("ack received called, ackno = %u, window_size = %u\n", ackno.raw_value(), window_size);
     // printf("unwrap(ackno, _isn, _next_seqno) = %lu, _next_seqno = %lu\n", unwrap(ackno, _isn, _next_seqno), _next_seqno);
     // ignore impossible ackno
+    
     if(unwrap(ackno, _isn, _next_seqno) > _next_seqno) return;
     bool pop = false;
     while(outstanding_segments.size()>0) {

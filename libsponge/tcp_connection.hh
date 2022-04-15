@@ -5,7 +5,6 @@
 #include "tcp_receiver.hh"
 #include "tcp_sender.hh"
 #include "tcp_state.hh"
-#include <map>
 
 //! \brief A complete endpoint of a TCP connection
 class TCPConnection {
@@ -25,37 +24,28 @@ class TCPConnection {
     size_t _accumulate_ms_last_segment_received{0};
     size_t _accumulate_ms{0};
 
-    enum ConnectionStatus{
-      CLOSED = 0,
-      LISTEN = 1,
-      SYN_RECEIVED = 2,
-      SYN_SENT = 3,
-      ESTABLISHED = 4,
-      FIN_WAIT_1 = 5,
-      FIN_WAIT_2 = 6,
-      CLOSING = 7,
-      TIME_WAIT = 8,
-      CLOSE_WAIT = 9,
-      LAST_ACK = 10
+    enum SenderState {
+      CLOSED,
+      SYN_SENT,
+      SYN_ACKED,
+      SYN_ACKED_also,
+      FIN_SENT,
+      FIN_ACKED,
+      ERROR_SEND,
+      UNKNOWN_SEND
     };
 
-    std::map<ConnectionStatus, std::string> status_mapper {
-      {CLOSED, "CLOSED"},
-      {LISTEN, "LISTEN"},
-      {SYN_RECEIVED, "SYN_RECEIVED"},
-      {SYN_SENT, "SYN_SENT"},
-      {ESTABLISHED, "ESTABLISHED"},
-      {FIN_WAIT_1, "FIN_WAIT_1"},
-      {FIN_WAIT_2, "FIN_WAIT_2"},
-      {CLOSING, "CLOSING"},
-      {TIME_WAIT, "TIME_WAIT"},
-      {CLOSE_WAIT, "CLOSE_WAIT"},
-      {LAST_ACK, "LAST_ACK"}
+    enum ReceiverState {
+      LISTEN,
+      SYN_RECV,
+      FIN_RECV,
+      ERROR_RECV,
+      UNKNOWN_RECV
     };
 
-    ConnectionStatus status{LISTEN};
+    inline SenderState sender_state();
 
-    inline void print_status();
+    inline ReceiverState receiver_state();
 
     inline size_t send_something();
 
