@@ -14,29 +14,21 @@
 //! the acknowledgment number and window size to advertise back to the
 //! remote TCPSender.
 class TCPReceiver {
+    WrappingInt32 _isn;
+    bool _set_syn_flag;
+
     //! Our data structure for re-assembling bytes.
     StreamReassembler _reassembler;
 
     //! The maximum number of bytes we'll store.
     size_t _capacity;
 
-    std::shared_ptr<WrappingInt32> isn{};
-    std::shared_ptr<WrappingInt32> ack{};
-
-    std::deque<std::pair<WrappingInt32, size_t>> ack_record{};
-
-    uint64_t checkpoint{0};
-
-    inline bool SYN_check(const TCPSegment &seg);
-
-    inline bool FIN_check(const TCPSegment &seg);
-
   public:
     //! \brief Construct a TCP receiver
     //!
     //! \param capacity the maximum number of bytes that the receiver will
     //!                 store in its buffers at any give time.
-    TCPReceiver(const size_t capacity) : _reassembler(capacity), _capacity(capacity) {}
+    TCPReceiver(const size_t capacity) : _isn(0), _set_syn_flag(false), _reassembler(capacity), _capacity(capacity) {}
 
     //! \name Accessors to provide feedback to the remote TCPSender
     //!@{

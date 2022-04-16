@@ -21,24 +21,23 @@ class TCPConnection {
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
 
-    size_t _accumulate_ms_last_segment_received{0};
-    size_t _accumulate_ms{0};
+    size_t _time_since_last_segment{0};
 
     enum SenderState {
       CLOSED,
       SYN_SENT,
-      SYN_ACKED,
-      SYN_ACKED_also,
-      FIN_SENT,
-      FIN_ACKED,
+      SYN_ACKED, // normal
+      SYN_ACKED_also, // input end, but fin not sent yet 
+      FIN_SENT = 4, // fin sent but not acked
+      FIN_ACKED, // fin acked
       ERROR_SEND,
       UNKNOWN_SEND
     };
 
     enum ReceiverState {
-      LISTEN,
-      SYN_RECV,
-      FIN_RECV,
+      LISTEN, // no ack yet, need syn in
+      SYN_RECV, // get syn normal
+      FIN_RECV, // fin received
       ERROR_RECV,
       UNKNOWN_RECV
     };
@@ -49,7 +48,9 @@ class TCPConnection {
 
     inline size_t send_something();
 
-    inline void send_RST_segment();
+    inline void set_RST(bool);
+
+    bool _active{true};
 
     inline void send_FIN_segment();
 
