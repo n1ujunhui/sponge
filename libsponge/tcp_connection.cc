@@ -268,13 +268,12 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
         if(_sender_state == SenderState::FIN_SENT) {
             if(seg.header().ack) {
                 _sender.ack_received(seg.header().ackno, seg.header().win);
-                // if(sender_state() == SenderState::FIN_ACKED) _active = false;
+                if(!_linger_after_streams_finish && sender_state() == SenderState::FIN_ACKED) _active = false;
                 goto Send;
             }
         }
         if(_sender_state == SenderState::FIN_ACKED) {
-            _need_send_ACK = true;
-            goto Send;
+            if(!_linger_after_streams_finish) _active = false;
         }
     }
 
@@ -328,6 +327,8 @@ size_t TCPConnection::write(const string &data) {
 //! \param[in] ms_since_last_tick number of milliseconds since the last call to this method
 void TCPConnection::tick(const size_t ms_since_last_tick) {
     _time_since_last_segment += ms_since_last_tick;
+
+    if(!_active) return;
 
     if(_sender.consecutive_retransmissions() >= TCPConfig::MAX_RETX_ATTEMPTS) {
         set_RST(true);
